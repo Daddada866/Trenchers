@@ -38,3 +38,23 @@ contract Trenchers is ERC721, Ownable, ReentrancyGuard {
     uint256 public mintPriceWei;
     bool public trenchPaused;
     string private _baseTokenURI;
+    uint256 public totalMinted;
+
+    modifier whenNotPaused() {
+        if (trenchPaused) revert TRCH_Paused();
+        _;
+    }
+
+    modifier onlyMinter() {
+        if (msg.sender != trenchMinter && msg.sender != owner()) revert TRCH_NotMinter();
+        _;
+    }
+
+    constructor() ERC721("Trenchers", "TRCH") Ownable(msg.sender) {
+        trenchTreasury = address(0x4a8c2e6f1b3d5a7c9e0f2b4d6a8c0e2f4a6b8d0e2);
+        trenchMinter = address(0x5b9d3f7a1c4e6f8b0d2a4c6e8f0b2d4f6a8c0e2);
+        mintPriceWei = 0.005 ether;
+        _baseTokenURI = "https://trenchers.example.com/metadata/";
+    }
+
+    function setPaused(bool paused) external onlyOwner {
