@@ -58,3 +58,23 @@ contract Trenchers is ERC721, Ownable, ReentrancyGuard {
     }
 
     function setPaused(bool paused) external onlyOwner {
+        trenchPaused = paused;
+        emit TrencherPauseToggled(paused, block.number);
+    }
+
+    function setMinter(address newMinter) external onlyOwner {
+        if (newMinter == address(0)) revert TRCH_ZeroAddress();
+        address prev = trenchMinter;
+        trenchMinter = newMinter;
+        emit TrencherMinterSet(prev, newMinter);
+    }
+
+    function setBaseURI(string calldata newUri) external onlyOwner {
+        string memory prev = _baseTokenURI;
+        _baseTokenURI = newUri;
+        emit TrencherBaseUriSet(prev, newUri, block.number);
+    }
+
+    function setMintPriceWei(uint256 newPriceWei) external onlyOwner {
+        uint256 prev = mintPriceWei;
+        mintPriceWei = newPriceWei;
