@@ -98,3 +98,23 @@ contract Trenchers is ERC721, Ownable, ReentrancyGuard {
 
     function mintBatch(address to, uint256 count) external payable onlyMinter whenNotPaused nonReentrant {
         if (to == address(0)) revert TRCH_ZeroAddress();
+        if (count == 0) revert TRCH_ZeroCount();
+        if (count > TRCH_BATCH_MINT_CAP) revert TRCH_BatchTooLarge();
+        if (totalMinted + count > TRCH_MAX_SUPPLY) revert TRCH_MaxSupplyReached();
+        if (msg.value < mintPriceWei * count) revert TRCH_InsufficientMintPayment();
+        uint256 startId = totalMinted;
+        for (uint256 i = 0; i < count; i++) {
+            _safeMint(to, totalMinted);
+            totalMinted += 1;
+        }
+        if (msg.value > 0) {
+            (bool ok,) = trenchTreasury.call{value: msg.value}("");
+            if (!ok) revert TRCH_TransferFailed();
+        }
+        emit TrencherBatchMinted(to, startId, count, block.number);
+    }
+
+    function mintByOwner(address to, uint256 count) external onlyOwner whenNotPaused nonReentrant {
+        if (to == address(0)) revert TRCH_ZeroAddress();
+        if (count == 0) revert TRCH_ZeroCount();
+        if (count > TRCH_BATCH_MINT_CAP) revert TRCH_BatchTooLarge();
